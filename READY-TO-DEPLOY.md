@@ -15,12 +15,13 @@
 2. Drag your `dist` folder into the website
 3. 🎉 **DONE!** Your website is live!
 
-### 2️⃣ VERCEL - PROFESSIONAL (2 minutes)
+### 3️⃣ VERCEL - PROFESSIONAL (2 minutes)
 1. Go to: https://vercel.com
 2. Sign up with GitHub (free)
 3. Click "New Project" → "Add GitHub Repository"
-4. Import your project
-5. 🎉 **DONE!** Auto-deploys on every update!
+4. Import your project: `https://github.com/ChauhanRutvik001/matdarFrontend`
+5. Add environment variable: `VITE_API_URL=https://matdarserver.onrender.com/api`
+6. 🎉 **DONE!** Auto-deploys on every update!
 
 ### 3️⃣ GITHUB PAGES - FREE FOREVER (5 minutes)
 1. Create GitHub repository

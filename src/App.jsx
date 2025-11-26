@@ -2,11 +2,11 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Download, Search, Filter } from 'lucide-react';
 
 // API URL resolution:
-// - Use Vite env `VITE_API_URL` if set (recommended when accessing from mobile)
-// - Otherwise fall back to http://<current-host>:5000/api so mobile devices accessing the app
-//   via the machine IP will use the correct backend host.
-const DEFAULT_API_PORT = 5000;
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:${DEFAULT_API_PORT}/api`;
+// Production backend deployed on Render: https://matdarserver.onrender.com/
+// Use VITE_API_URL environment variable for production or fall back to local development
+const PRODUCTION_API_URL = 'https://matdarserver.onrender.com/api';
+const LOCAL_API_URL = `http://${window.location.hostname}:5000/api`;
+const API_URL = import.meta.env.VITE_API_URL || PRODUCTION_API_URL;
 
 export default function AdvancedNumberStatusTracker() {
   const [data, setData] = useState({});
