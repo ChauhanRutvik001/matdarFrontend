@@ -7,12 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "start": "vite preview --host 0.0.0.0 --port $PORT",
+    "preview": "vite preview --host 0.0.0.0 --port $PORT",
+    "start": "npm run build && node serve.js",
+    "serve": "node serve.js",
     "deploy": "npm run build && echo 🚀 Ready for deployment! Check the dist folder."
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",
+    "express": "^4.18.2",
     "lucide-react": "^0.554.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
