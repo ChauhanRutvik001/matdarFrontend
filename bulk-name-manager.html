@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Name Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .upload-area {
+            border: 2px dashed #e5e5e5;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .upload-area.dragover {
+            border-color: #3b82f6;
+            background-color: #dbeafe;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">📝 Bulk Name Manager</h1>
+        
+        <!-- Method Selection -->
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-3 text-blue-600">📂 CSV Upload</h3>
+                <p class="text-sm text-gray-600 mb-4">Upload a CSV file with number,name columns</p>
+                <button onclick="showMethod('csv')" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Select</button>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-3 text-green-600">🎭 Generate Sample</h3>
+                <p class="text-sm text-gray-600 mb-4">Generate random sample names for testing</p>
+                <button onclick="showMethod('sample')" class="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">Select</button>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-3 text-purple-600">✏️ Manual Entry</h3>
+                <p class="text-sm text-gray-600 mb-4">Enter names manually for specific numbers</p>
+                <button onclick="showMethod('manual')" class="w-full bg-purple-500 text-white py-2 rounded hover:bg-purple-600">Select</button>
+            </div>
+        </div>
+
+        <!-- CSV Upload Method -->
+        <div id="csv-method" class="hidden bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">📂 CSV File Upload</h3>
+            
+            <!-- File Upload Area -->
+            <div id="upload-area" class="upload-area border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4">
+                <div class="mb-4">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                </div>
+                <p class="text-lg text-gray-600 mb-2">Drop CSV file here or click to upload</p>
+                <p class="text-sm text-gray-400">Expected format: number,name</p>
+                <input type="file" id="csv-file" accept=".csv" class="hidden">
+                <button onclick="document.getElementById('csv-file').click()" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Choose File</button>
+            </div>
+            
+            <!-- CSV Preview -->
+            <div id="csv-preview" class="hidden mb-4">
+                <h4 class="font-semibold mb-2">Preview (first 10 rows):</h4>
+                <div class="bg-gray-50 p-4 rounded border">
+                    <table id="preview-table" class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="text-left p-2">Number</th>
+                                <th class="text-left p-2">Name</th>
+                            </tr>
+                        </thead>
+                        <tbody id="preview-body"></tbody>
+                    </table>
+                </div>
+                <button onclick="uploadCSVData()" class="mt-4 bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">
+                    💾 Upload Names to Database
+                </button>
+            </div>
+            
+            <!-- CSV Template Download -->
+            <div class="mt-4">
+                <p class="text-sm text-gray-600 mb-2">📋 Need a template? Download sample CSV:</p>
+                <button onclick="downloadTemplate()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    📥 Download Template
+                </button>
+            </div>
+        </div>
+
+        <!-- Sample Generation Method -->
+        <div id="sample-method" class="hidden bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">🎭 Generate Sample Names</h3>
+            <p class="text-gray-600 mb-4">This will generate random names for all 1421 numbers for testing purposes.</p>
+            <button onclick="generateSampleNames()" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">
+                🎲 Generate Sample Names
+            </button>
+        </div>
+
+        <!-- Manual Entry Method -->
+        <div id="manual-method" class="hidden bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">✏️ Manual Name Entry</h3>
+            
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <input type="number" id="manual-number" placeholder="Number (1-1421)" min="1" max="1421" class="border rounded px-3 py-2">
+                <input type="text" id="manual-name" placeholder="Person Name" class="border rounded px-3 py-2">
+            </div>
+            
+            <button onclick="addManualName()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2">
+                ➕ Add Name
+            </button>
+            
+            <div id="manual-list" class="mt-4 hidden">
+                <h4 class="font-semibold mb-2">Names to Upload:</h4>
+                <div id="manual-names" class="bg-gray-50 p-4 rounded border max-h-60 overflow-y-auto"></div>
+                <button onclick="uploadManualNames()" class="mt-4 bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">
+                    💾 Upload All Names
+                </button>
+            </div>
+        </div>
+
+        <!-- Status Display -->
+        <div id="status-display" class="hidden bg-white rounded-lg shadow-md p-6">
+            <div id="status-content"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : `http://${window.location.hostname}:5000`;
+        let csvData = [];
+        let manualNames = [];
+
+        function showMethod(method) {
+            // Hide all methods
+            document.querySelectorAll('[id$="-method"]').forEach(el => el.classList.add('hidden'));
+            // Show selected method
+            document.getElementById(method + '-method').classList.remove('hidden');
+        }
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status-display');
+            const statusContent = document.getElementById('status-content');
+            
+            const bgColor = type === 'success' ? 'bg-green-100 border-green-500 text-green-700' : 
+                           type === 'error' ? 'bg-red-100 border-red-500 text-red-700' : 
+                           'bg-blue-100 border-blue-500 text-blue-700';
+            
+            statusContent.innerHTML = `
+                <div class="border-l-4 ${bgColor} p-4">
+                    ${message}
+                </div>
+            `;
+            statusDiv.classList.remove('hidden');
+        }
+
+        // CSV File Handling
+        document.getElementById('csv-file').addEventListener('change', handleCSVFile);
+        
+        // Drag and Drop
+        const uploadArea = document.getElementById('upload-area');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === 'text/csv') {
+                handleCSVFile({ target: { files: [files[0]] } });
+            }
+        });
+
+        function handleCSVFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                parseCSV(text);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(text) {
+            const lines = text.split('\\n').filter(line => line.trim());
+            csvData = [];
+            
+            // Skip header row if it exists
+            const startIndex = lines[0].toLowerCase().includes('number') ? 1 : 0;
+            
+            for (let i = startIndex; i < lines.length; i++) {
+                const [number, name] = lines[i].split(',').map(s => s.trim().replace(/"/g, ''));
+                const num = parseInt(number);
+                
+                if (num && name && num >= 1 && num <= 1421) {
+                    csvData.push({ number: num, name });
+                }
+            }
+            
+            showCSVPreview();
+        }
+
+        function showCSVPreview() {
+            const previewDiv = document.getElementById('csv-preview');
+            const tbody = document.getElementById('preview-body');
+            
+            tbody.innerHTML = '';
+            
+            // Show first 10 rows
+            csvData.slice(0, 10).forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-2 border-b">${row.number}</td>
+                    <td class="p-2 border-b">${row.name}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            previewDiv.classList.remove('hidden');
+            showStatus(`📊 Parsed ${csvData.length} valid records from CSV`, 'success');
+        }
+
+        async function uploadCSVData() {
+            if (csvData.length === 0) {
+                showStatus('No data to upload', 'error');
+                return;
+            }
+
+            try {
+                showStatus('📡 Uploading names to database...', 'info');
+                
+                const response = await fetch(`${API_URL}/api/numbers/bulk-names`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ names: csvData })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showStatus(`✅ Success! Modified: ${result.modified}, Created: ${result.created}, Total: ${result.total}`, 'success');
+                } else {
+                    showStatus(`❌ Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        function downloadTemplate() {
+            const csvContent = 'number,name\\n1,John Smith\\n2,Jane Doe\\n3,Mike Johnson\\n';
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'names-template.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        async function generateSampleNames() {
+            try {
+                showStatus('🎲 Generating sample names...', 'info');
+                
+                const firstNames = ['John', 'Jane', 'Mike', 'Sarah', 'David', 'Lisa', 'Chris', 'Emma', 'Ryan', 'Maria', 'James', 'Jessica', 'Daniel', 'Ashley', 'Matthew', 'Amanda', 'Joshua', 'Nicole', 'Andrew', 'Stephanie'];
+                const lastNames = ['Smith', 'Johnson', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson', 'Thomas', 'Garcia', 'Martinez', 'Robinson', 'Clark', 'Lewis', 'Walker', 'Hall', 'Allen', 'Young', 'King'];
+                
+                const names = [];
+                for (let i = 1; i <= 1421; i++) {
+                    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+                    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+                    names.push({ number: i, name: `${firstName} ${lastName}` });
+                }
+
+                const response = await fetch(`${API_URL}/api/numbers/bulk-names`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ names })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showStatus(`✅ Generated sample names! Modified: ${result.modified}, Created: ${result.created}`, 'success');
+                } else {
+                    showStatus(`❌ Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        function addManualName() {
+            const numberInput = document.getElementById('manual-number');
+            const nameInput = document.getElementById('manual-name');
+            
+            const number = parseInt(numberInput.value);
+            const name = nameInput.value.trim();
+            
+            if (!number || number < 1 || number > 1421) {
+                alert('Please enter a valid number (1-1421)');
+                return;
+            }
+            
+            if (!name) {
+                alert('Please enter a name');
+                return;
+            }
+            
+            // Check if number already exists
+            if (manualNames.find(item => item.number === number)) {
+                alert('Number already added. Remove it first to update.');
+                return;
+            }
+            
+            manualNames.push({ number, name });
+            updateManualList();
+            
+            // Clear inputs
+            numberInput.value = '';
+            nameInput.value = '';
+        }
+
+        function updateManualList() {
+            const listDiv = document.getElementById('manual-list');
+            const namesDiv = document.getElementById('manual-names');
+            
+            if (manualNames.length === 0) {
+                listDiv.classList.add('hidden');
+                return;
+            }
+            
+            listDiv.classList.remove('hidden');
+            
+            namesDiv.innerHTML = manualNames
+                .sort((a, b) => a.number - b.number)
+                .map(item => `
+                    <div class="flex justify-between items-center py-2 px-3 border-b">
+                        <span><strong>${item.number}</strong>: ${item.name}</span>
+                        <button onclick="removeManualName(${item.number})" class="text-red-500 hover:text-red-700">❌</button>
+                    </div>
+                `).join('');
+        }
+
+        function removeManualName(number) {
+            manualNames = manualNames.filter(item => item.number !== number);
+            updateManualList();
+        }
+
+        async function uploadManualNames() {
+            if (manualNames.length === 0) {
+                showStatus('No names to upload', 'error');
+                return;
+            }
+
+            try {
+                showStatus(`📡 Uploading ${manualNames.length} names...`, 'info');
+                
+                const response = await fetch(`${API_URL}/api/numbers/bulk-names`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ names: manualNames })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showStatus(`✅ Success! Modified: ${result.modified}, Created: ${result.created}`, 'success');
+                    manualNames = [];
+                    updateManualList();
+                } else {
+                    showStatus(`❌ Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

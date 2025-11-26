@@ -1,0 +1,16 @@
+{
+  "name": "gujarati-family-tracker",
+  "version": "1.0.0",
+  "description": "Gujarati Family Status Tracker with 1421 names and relationships",
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "start": "cd server && npm start",
+    "build": "npm install && cd server && npm install",
+    "dev": "cd server && npm run dev"
+  },
+  "keywords": ["gujarati", "family", "tracker", "mongodb", "react"],
+  "author": "",
+  "license": "MIT"
+}
